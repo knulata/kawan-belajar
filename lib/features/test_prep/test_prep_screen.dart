@@ -46,11 +46,11 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
 
     try {
       final questions = await chat.generateTestQuestions(
-        apiKey: student.apiKey,
         subject: _selectedSubject,
         topic: _topicController.text,
         grade: student.student!.grade,
         count: 5,
+        studentId: student.student!.id,
       );
 
       setState(() {

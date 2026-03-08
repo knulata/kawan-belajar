@@ -42,9 +42,9 @@ class _DictationScreenState extends State<DictationScreen> {
     try {
       for (int i = 0; i < count; i++) {
         final response = await chat.generateDictationWord(
-          apiKey: student.apiKey,
           lesson: _lessonController.text,
           wordIndex: i + 1,
+          studentId: student.student!.id,
         );
 
         try {

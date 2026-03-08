@@ -57,9 +57,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await chat.sendMessage(
       text: greeting,
-      apiKey: student.apiKey,
       studentName: student.student!.name,
       grade: student.student!.grade,
+      studentId: student.student!.id,
     );
     _scrollToBottom();
   }
@@ -112,9 +112,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await chat.sendMessage(
       text: 'Tolong bantu aku dengan soal di foto ini.',
-      apiKey: student.apiKey,
       studentName: student.student!.name,
       grade: student.student!.grade,
+      studentId: student.student!.id,
       imageBytes: bytes,
       imageName: name,
     );
@@ -131,9 +131,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await chat.sendMessage(
       text: text,
-      apiKey: student.apiKey,
       studentName: student.student!.name,
       grade: student.student!.grade,
+      studentId: student.student!.id,
     );
     _scrollToBottom();
   }

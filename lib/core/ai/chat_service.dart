@@ -19,6 +19,13 @@ class ChatMessage {
 }
 
 class ChatService extends ChangeNotifier {
+  // API base URL — set via --dart-define=API_URL=https://your-server.com
+  // Defaults to localhost for development
+  static const _apiBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://localhost:3001',
+  );
+
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   String _currentSubject = '';
@@ -41,34 +48,48 @@ class ChatService extends ChangeNotifier {
   String _buildSystemPrompt(String studentName, String grade) {
     return '''You are Budi, a friendly and wise owl who is an AI tutor for Indonesian students. You speak in Bahasa Indonesia by default, but switch to the appropriate language when helping with language subjects (Chinese for Mandarin class, English for English class).
 
-IMPORTANT RULES:
-- NEVER give direct answers. Always guide the student step by step.
-- Ask guiding questions to help them think through problems.
-- Give hints and break down complex problems into smaller steps.
-- Be encouraging and celebrate effort, not just correct answers.
+CRITICAL RULES — These make you DIFFERENT from ChatGPT:
+- NEVER give direct answers. This is the #1 rule. ALWAYS guide step by step.
+- When a student asks "what is the answer?", respond with a guiding question instead.
+- Break problems into small steps. Ask the student to try each step.
+- Only confirm when the student arrives at the answer themselves.
+- If they're stuck for 3+ turns, give a bigger hint but still don't give the answer.
+- Celebrate EFFORT, not just correct answers. "Bagus, kamu sudah coba! 💪"
+
+TEACHING STYLE:
+- Use the Socratic method — ask questions that lead to understanding.
+- Give real-world examples relevant to Indonesian kids' daily life.
+- For math: ask "what do you think the first step is?" before showing anything.
+- For languages: give context clues, not translations.
+- For science: connect to things they can see/touch.
 - Use age-appropriate language for a $grade student.
-- Add fun facts or interesting connections when relevant.
-- If the student is frustrated, be extra supportive and patient.
-- Use emojis occasionally to be friendly 🦉
+- Add fun facts to make learning interesting.
+- Use emojis to be friendly 🦉
+
+PERSONALITY:
+- You're warm, patient, and never judgmental.
+- If the student is frustrated, acknowledge it: "Aku tahu ini susah, tapi kamu pasti bisa!"
+- You remember what they struggled with and refer back to it.
+- You occasionally crack age-appropriate jokes.
 
 The student's name is $studentName and they are in $grade.
 
 When analyzing a photo of homework or a textbook:
-1. Identify the subject and topic
-2. Read the questions/problems visible
-3. Ask which one the student needs help with
-4. Guide them through it step by step
+1. Identify ALL questions/problems visible in the photo
+2. List them briefly: "Aku lihat ada soal 1, 2, 3... Mau mulai dari yang mana?"
+3. When they pick one, guide them through it step by step
+4. After solving one, ask if they want to try the next one
 
 Current subject context: ${_currentSubject.isNotEmpty ? _currentSubject : "General"}
 
-Start by greeting the student warmly in Bahasa Indonesia.''';
+Start by greeting the student warmly in Bahasa Indonesia. Use their name.''';
   }
 
   Future<void> sendMessage({
     required String text,
-    required String apiKey,
     required String studentName,
     required String grade,
+    String? studentId,
     Uint8List? imageBytes,
     String? imageName,
   }) async {
@@ -82,10 +103,10 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
     notifyListeners();
 
     try {
-      final response = await _callChatGPT(
-        apiKey: apiKey,
+      final response = await _callAPI(
         studentName: studentName,
         grade: grade,
+        studentId: studentId,
         imageBytes: imageBytes,
         imageName: imageName,
       );
@@ -97,7 +118,7 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
     } catch (e) {
       _messages.add(ChatMessage(
         role: 'assistant',
-        content: 'Maaf, Budi sedang mengalami gangguan. Coba lagi ya! 🦉\n\nError: $e',
+        content: 'Maaf, Budi sedang istirahat sebentar. Coba lagi ya! 🦉\n\nError: $e',
       ));
     }
 
@@ -105,10 +126,10 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
     notifyListeners();
   }
 
-  Future<String> _callChatGPT({
-    required String apiKey,
+  Future<String> _callAPI({
     required String studentName,
     required String grade,
+    String? studentId,
     Uint8List? imageBytes,
     String? imageName,
   }) async {
@@ -144,21 +165,22 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
     }
 
     final response = await http.post(
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
+      Uri.parse('$_apiBaseUrl/api/chat'),
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'model': 'gpt-4o',
         'messages': apiMessages,
+        'student_id': studentId ?? studentName,
         'max_tokens': 1500,
         'temperature': 0.7,
       }),
     );
 
+    if (response.statusCode == 429) {
+      throw Exception('Terlalu banyak pertanyaan. Tunggu sebentar ya!');
+    }
+
     if (response.statusCode != 200) {
-      throw Exception('API Error ${response.statusCode}: ${response.body}');
+      throw Exception('Budi sedang sibuk (${response.statusCode})');
     }
 
     final data = jsonDecode(response.body);
@@ -166,18 +188,14 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
   }
 
   Future<String> generateDictationWord({
-    required String apiKey,
     required String lesson,
     required int wordIndex,
+    String? studentId,
   }) async {
     final response = await http.post(
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
+      Uri.parse('$_apiBaseUrl/api/chat'),
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'model': 'gpt-4o',
         'messages': [
           {
             'role': 'system',
@@ -190,6 +208,7 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
                 'Generate word #$wordIndex for lesson: "$lesson". Make it appropriate for Indonesian elementary/middle school students learning Chinese.',
           },
         ],
+        'student_id': studentId ?? 'dictation',
         'max_tokens': 100,
         'temperature': 0.8,
       }),
@@ -204,20 +223,16 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
   }
 
   Future<List<Map<String, dynamic>>> generateTestQuestions({
-    required String apiKey,
     required String subject,
     required String topic,
     required String grade,
     required int count,
+    String? studentId,
   }) async {
     final response = await http.post(
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
+      Uri.parse('$_apiBaseUrl/api/chat'),
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'model': 'gpt-4o',
         'messages': [
           {
             'role': 'system',
@@ -230,6 +245,7 @@ Start by greeting the student warmly in Bahasa Indonesia.''';
                 'Generate $count multiple choice questions for subject: $subject, topic: "$topic", grade: $grade.',
           },
         ],
+        'student_id': studentId ?? 'testprep',
         'max_tokens': 2000,
         'temperature': 0.7,
       }),

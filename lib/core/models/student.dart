@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Student {
+  final String id;
   final String name;
   final String grade;
   final int stars;
   final int level;
 
   Student({
+    required this.id,
     required this.name,
     required this.grade,
     this.stars = 0,
@@ -17,19 +19,16 @@ class Student {
 
 class StudentProvider extends ChangeNotifier {
   Student? _student;
-  String _apiKey = '';
 
   Student? get student => _student;
   bool get isLoggedIn => _student != null;
-  String get apiKey => _apiKey;
 
-  Future<void> login(String name, String grade, String apiKey) async {
-    _student = Student(name: name, grade: grade);
-    _apiKey = apiKey;
+  Future<void> login(String name, String grade) async {
+    final id = '${name.toLowerCase().replaceAll(' ', '_')}_${grade.replaceAll(' ', '')}';
+    _student = Student(id: id, name: name, grade: grade);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('student_name', name);
     await prefs.setString('student_grade', grade);
-    await prefs.setString('api_key', apiKey);
     notifyListeners();
   }
 
@@ -37,31 +36,38 @@ class StudentProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('student_name');
     final grade = prefs.getString('student_grade');
-    final apiKey = prefs.getString('api_key');
-    if (name != null && grade != null && apiKey != null) {
-      _student = Student(name: name, grade: grade);
-      _apiKey = apiKey;
+    if (name != null && grade != null) {
+      final id = '${name.toLowerCase().replaceAll(' ', '_')}_${grade.replaceAll(' ', '')}';
+      _student = Student(id: id, name: name, grade: grade);
+
+      // Load stars
+      final stars = prefs.getInt('student_stars') ?? 0;
+      _student = Student(id: id, name: name, grade: grade, stars: stars);
       notifyListeners();
     }
   }
 
-  void addStars(int count) {
+  void addStars(int count) async {
     if (_student != null) {
+      final newStars = _student!.stars + count;
       _student = Student(
+        id: _student!.id,
         name: _student!.name,
         grade: _student!.grade,
-        stars: _student!.stars + count,
-        level: _student!.level,
+        stars: newStars,
+        level: (newStars ~/ 50) + 1,
       );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('student_stars', newStars);
       notifyListeners();
     }
   }
 
   Future<void> logout() async {
     _student = null;
-    _apiKey = '';
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove('student_name');
+    await prefs.remove('student_grade');
     notifyListeners();
   }
 }

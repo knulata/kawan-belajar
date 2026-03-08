@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _nameController = TextEditingController();
-  final _apiKeyController = TextEditingController();
   String _selectedGrade = 'SD Kelas 4';
   bool _isLoading = false;
 
@@ -39,9 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (_nameController.text.isEmpty || _apiKeyController.text.isEmpty) {
+    if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Isi semua kolom ya!')),
+        const SnackBar(content: Text('Tulis namamu dulu ya! 😊')),
       );
       return;
     }
@@ -50,7 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
     await context.read<StudentProvider>().login(
           _nameController.text.trim(),
           _selectedGrade,
-          _apiKeyController.text.trim(),
         );
     setState(() => _isLoading = false);
   }
@@ -116,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   FadeInDown(
                     delay: const Duration(milliseconds: 300),
                     child: Text(
-                      'Teman Belajar AI-mu! 📚',
+                      'Teman Belajar AI-mu!',
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.white.withAlpha(230),
@@ -129,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   FadeInUp(
                     delay: const Duration(milliseconds: 400),
                     child: Container(
-                      constraints: const BoxConstraints(maxWidth: 450),
+                      constraints: const BoxConstraints(maxWidth: 420),
                       padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -146,9 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Text(
-                            'Halo! Siapa namamu? 👋',
+                            'Halo! Siapa namamu?',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.w600,
                             ),
                             textAlign: TextAlign.center,
@@ -158,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Name field
                           TextField(
                             controller: _nameController,
+                            textCapitalization: TextCapitalization.words,
                             decoration: InputDecoration(
                               labelText: 'Nama',
                               hintText: 'Ketik namamu di sini',
@@ -168,6 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               filled: true,
                               fillColor: const Color(0xFFF5F5F5),
                             ),
+                            onSubmitted: (_) => _login(),
                           ),
                           const SizedBox(height: 16),
 
@@ -192,30 +192,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             onChanged: (v) =>
                                 setState(() => _selectedGrade = v!),
                           ),
-                          const SizedBox(height: 16),
-
-                          // API Key field
-                          TextField(
-                            controller: _apiKeyController,
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              labelText: 'OpenAI API Key',
-                              hintText: 'sk-...',
-                              prefixIcon: const Icon(Icons.key_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF5F5F5),
-                              helperText: 'Minta ke guru atau orang tua',
-                              helperMaxLines: 2,
-                            ),
-                          ),
                           const SizedBox(height: 28),
 
                           // Login button
                           SizedBox(
-                            height: 52,
+                            height: 56,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
@@ -236,9 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     )
                                   : const Text(
-                                      'Mulai Belajar! 🚀',
+                                      'Mulai Belajar!',
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -260,7 +241,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _apiKeyController.dispose();
     super.dispose();
   }
 }
