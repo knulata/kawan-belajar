@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../core/models/student.dart';
+import '../../core/models/parent_data.dart';
 import '../chat/chat_screen.dart';
 import '../dictation/dictation_screen.dart';
 import '../test_prep/test_prep_screen.dart';
+import '../parent/parent_dashboard_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,6 +22,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final student = context.watch<StudentProvider>().student!;
+    final parentData = context.watch<ParentDataProvider>();
     final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
@@ -164,7 +167,92 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+
+              // Upcoming reminders banner
+              if (parentData.upcomingReminders.isNotEmpty)
+                FadeInUp(
+                  delay: const Duration(milliseconds: 250),
+                  child: Builder(
+                    builder: (context) {
+                      final upcoming = parentData.upcomingReminders;
+                      final soonest = upcoming.first;
+                      final daysLeft = soonest.dueDate
+                          .difference(DateTime.now())
+                          .inDays;
+                      final isUrgent = daysLeft <= 1;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isUrgent
+                              ? const Color(0xFFFFEBEE)
+                              : const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isUrgent
+                                ? Colors.red.withAlpha(100)
+                                : Colors.orange.withAlpha(100),
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const ParentDashboardScreen(),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                isUrgent ? '🚨' : '📅',
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      daysLeft <= 0
+                                          ? 'Hari ini: ${soonest.title}'
+                                          : daysLeft == 1
+                                              ? 'Besok: ${soonest.title}'
+                                              : '$daysLeft hari lagi: ${soonest.title}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: isUrgent
+                                            ? Colors.red[800]
+                                            : Colors.orange[900],
+                                      ),
+                                    ),
+                                    Text(
+                                      '${soonest.subject}${upcoming.length > 1 ? ' (+${upcoming.length - 1} lainnya)' : ''}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 14,
+                                color: Colors.grey[400],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+              const SizedBox(height: 16),
 
               // Quick actions
               FadeInUp(
@@ -184,7 +272,7 @@ class HomeScreen extends StatelessWidget {
                 delay: const Duration(milliseconds: 400),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final crossCount = isWide ? 3 : 1;
+                    final crossCount = isWide ? 2 : 1;
                     return GridView.count(
                       crossAxisCount: crossCount,
                       shrinkWrap: true,
@@ -227,6 +315,18 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const TestPrepScreen(),
+                            ),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: '👨‍👩‍👧',
+                          title: 'Laporan Orang Tua',
+                          subtitle: 'Progress & pengingat PR/ujian',
+                          color: const Color(0xFF7B1FA2),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ParentDashboardScreen(),
                             ),
                           ),
                         ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/ai/chat_service.dart';
 import 'core/models/student.dart';
+import 'core/models/parent_data.dart';
 import 'features/home/home_screen.dart';
 import 'features/auth/login_screen.dart';
 
@@ -20,6 +21,11 @@ class KawanBelajarApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => ChatService()),
+        ChangeNotifierProvider(create: (_) {
+          final provider = ParentDataProvider();
+          provider.load();
+          return provider;
+        }),
       ],
       child: MaterialApp(
         title: 'Kawan Belajar',
