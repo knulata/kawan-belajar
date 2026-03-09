@@ -18,6 +18,7 @@ dependencies:
   animate_do: ^3.3.4
   flutter_markdown: ^0.7.7+1
   mime: ^2.0.0
+  speech_to_text: ^7.0.0
 
 dev_dependencies:
   flutter_test:

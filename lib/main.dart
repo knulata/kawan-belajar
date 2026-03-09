@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/ai/chat_service.dart';
 import 'core/models/student.dart';
+import 'core/services/question_cache.dart';
 import 'features/home/home_screen.dart';
 import 'features/auth/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Pre-load question bank cache (downloads in background if stale)
+  QuestionCache().initialize();
   runApp(const KawabelApp());
 }
 

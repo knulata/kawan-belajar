@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/ai/chat_service.dart';
 import '../../core/models/student.dart';
 
@@ -22,15 +23,34 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   final _picker = ImagePicker();
   bool _hasGreeted = false;
 
+  // Voice input state
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _speechAvailable = false;
+  bool _isListening = false;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
   @override
   void initState() {
     super.initState();
+
+    // Pulse animation for the mic icon when listening
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.35).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _initSpeech();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chat = context.read<ChatService>();
       chat.clearMessages();
@@ -39,6 +59,91 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       _sendGreeting();
     });
+  }
+
+  /// Initialize speech recognition; silently disable if unavailable (e.g. web).
+  Future<void> _initSpeech() async {
+    try {
+      final available = await _speech.initialize(
+        onStatus: _onSpeechStatus,
+        onError: (error) {
+          debugPrint('Speech error: ${error.errorMsg}');
+          if (mounted) setState(() => _isListening = false);
+          _pulseController.stop();
+          _pulseController.reset();
+        },
+      );
+      if (mounted) setState(() => _speechAvailable = available);
+    } catch (e) {
+      // speech_to_text throws on platforms that don't support it (web, etc.)
+      debugPrint('Speech-to-text not available: $e');
+      if (mounted) setState(() => _speechAvailable = false);
+    }
+  }
+
+  void _onSpeechStatus(String status) {
+    if (status == 'done' || status == 'notListening') {
+      if (mounted) {
+        setState(() => _isListening = false);
+        _pulseController.stop();
+        _pulseController.reset();
+      }
+    }
+  }
+
+  /// Pick the recognition locale based on the current subject.
+  String _speechLocale() {
+    final subj = (widget.subject ?? '').toLowerCase();
+    if (subj.contains('mandarin') || subj.contains('chinese')) {
+      return 'zh-CN';
+    }
+    if (subj.contains('english')) {
+      return 'en-US';
+    }
+    // Default: Bahasa Indonesia
+    return 'id-ID';
+  }
+
+  Future<void> _toggleListening() async {
+    if (!_speechAvailable) {
+      _showSpeechUnavailableSnackbar();
+      return;
+    }
+
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      _pulseController.stop();
+      _pulseController.reset();
+    } else {
+      setState(() => _isListening = true);
+      _pulseController.repeat(reverse: true);
+
+      await _speech.listen(
+        localeId: _speechLocale(),
+        listenMode: stt.ListenMode.dictation,
+        onResult: (result) {
+          setState(() {
+            _textController.text = result.recognizedWords;
+            _textController.selection = TextSelection.fromPosition(
+              TextPosition(offset: _textController.text.length),
+            );
+          });
+        },
+      );
+    }
+  }
+
+  void _showSpeechUnavailableSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Suara tidak tersedia di perangkat ini. '
+          'Coba di HP ya!',
+        ),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _sendGreeting() async {
@@ -125,6 +230,14 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
+    // Stop listening if we were recording
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      _pulseController.stop();
+      _pulseController.reset();
+    }
+
     _textController.clear();
     final student = context.read<StudentProvider>();
     final chat = context.read<ChatService>();
@@ -162,9 +275,9 @@ class _ChatScreenState extends State<ChatScreen> {
         foregroundColor: Colors.white,
         title: Row(
           children: [
-            const Text('🦉 ', style: TextStyle(fontSize: 24)),
+            const Text('\u{1F989} ', style: TextStyle(fontSize: 24)),
             Text(
-              widget.subject != null ? 'Budi — ${widget.subject}' : 'Budi',
+              widget.subject != null ? 'Budi \u2014 ${widget.subject}' : 'Budi',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
@@ -187,7 +300,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('🦉', style: TextStyle(fontSize: 64)),
+                        const Text('\u{1F989}', style: TextStyle(fontSize: 64)),
                         const SizedBox(height: 16),
                         Text(
                           'Budi sedang bersiap...',
@@ -218,6 +331,33 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
           ),
 
+          // Listening indicator banner
+          if (_isListening)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: const Color(0xFFE8F5E9),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.hearing, size: 18, color: Color(0xFF4CAF50)),
+                  const SizedBox(width: 8),
+                  Text(
+                    _speechLocale() == 'zh-CN'
+                        ? 'Budi mendengarkan... (Mandarin)'
+                        : _speechLocale() == 'en-US'
+                            ? 'Budi mendengarkan... (English)'
+                            : 'Budi mendengarkan...',
+                    style: const TextStyle(
+                      color: Color(0xFF388E3C),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Input bar
           Container(
             padding: EdgeInsets.fromLTRB(
@@ -244,7 +384,41 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: _pickImage,
                   tooltip: 'Kirim foto',
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
+
+                // Mic button with pulse animation
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _isListening ? _pulseAnimation.value : 1.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _isListening
+                              ? const Color(0xFFFF5252)
+                              : const Color(0xFFF0F0F0),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _isListening ? Icons.mic : Icons.mic_none,
+                            color: _isListening
+                                ? Colors.white
+                                : _speechAvailable
+                                    ? const Color(0xFF4CAF50)
+                                    : Colors.grey,
+                          ),
+                          onPressed: chat.isLoading ? null : _toggleListening,
+                          tooltip: _isListening
+                              ? 'Berhenti mendengarkan'
+                              : 'Bicara ke Budi',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 4),
+
                 Expanded(
                   child: TextField(
                     controller: _textController,
@@ -288,6 +462,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _speech.stop();
+    _pulseController.dispose();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -315,7 +491,7 @@ class _MessageBubble extends StatelessWidget {
             const CircleAvatar(
               backgroundColor: Color(0xFF4CAF50),
               radius: 18,
-              child: Text('🦉', style: TextStyle(fontSize: 20)),
+              child: Text('\u{1F989}', style: TextStyle(fontSize: 20)),
             ),
             const SizedBox(width: 8),
           ],
@@ -407,7 +583,7 @@ class _TypingIndicator extends StatelessWidget {
           const CircleAvatar(
             backgroundColor: Color(0xFF4CAF50),
             radius: 18,
-            child: Text('🦉', style: TextStyle(fontSize: 20)),
+            child: Text('\u{1F989}', style: TextStyle(fontSize: 20)),
           ),
           const SizedBox(width: 8),
           Container(

@@ -7,6 +7,7 @@ import '../chat/chat_screen.dart';
 import '../dictation/dictation_screen.dart';
 import '../test_prep/test_prep_screen.dart';
 import '../progress/progress_screen.dart';
+import '../leaderboard/leaderboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -115,6 +116,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        // Leaderboard button
+                        IconButton(
+                          icon: const Icon(Icons.leaderboard_rounded),
+                          color: const Color(0xFFFF9800),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LeaderboardScreen(),
+                            ),
+                          ),
+                          tooltip: 'Papan Peringkat',
+                        ),
                         // Progress button
                         IconButton(
                           icon: const Icon(Icons.bar_chart_rounded),
@@ -160,6 +173,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => const ProgressScreen(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.leaderboard, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Peringkat'),
+                                ],
+                              ),
+                              onTap: () => Future.delayed(
+                                Duration.zero,
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LeaderboardScreen(),
                                   ),
                                 ),
                               ),

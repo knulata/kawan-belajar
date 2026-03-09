@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panduan Kiosk iPad — Kawabel Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Poppins', sans-serif; } .title-font { font-family: 'Nunito', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Nav -->
+  <nav class="bg-green-600 text-white px-6 py-4 flex items-center gap-4">
+    <a href="index.html" class="hover:underline">&larr; Dashboard</a>
+    <h1 class="title-font text-xl font-black">Panduan Setup iPad Kiosk</h1>
+  </nav>
+
+  <div class="max-w-3xl mx-auto p-8">
+    <div class="bg-white rounded-2xl shadow p-8">
+      <h2 class="text-2xl font-bold text-green-700 mb-6">Setup iPad untuk Tuition Center</h2>
+
+      <!-- Step 1 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">1</span>
+          <h3 class="text-lg font-semibold">Install Kawabel Web App</h3>
+        </div>
+        <div class="ml-11 text-gray-600 space-y-2">
+          <p>1. Buka <strong>Safari</strong> di iPad</p>
+          <p>2. Kunjungi URL Kawabel: <code class="bg-gray-100 px-2 py-1 rounded" id="appUrl"></code></p>
+          <p>3. Tap tombol <strong>Share</strong> (kotak dengan panah ke atas)</p>
+          <p>4. Pilih <strong>"Add to Home Screen"</strong></p>
+          <p>5. Beri nama "Kawabel" lalu tap <strong>Add</strong></p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">2</span>
+          <h3 class="text-lg font-semibold">Aktifkan Guided Access (Kiosk Mode)</h3>
+        </div>
+        <div class="ml-11 text-gray-600 space-y-2">
+          <p>Guided Access mengunci iPad ke satu app saja — siswa tidak bisa keluar.</p>
+          <ol class="list-decimal ml-5 space-y-1">
+            <li>Buka <strong>Settings > Accessibility > Guided Access</strong></li>
+            <li>Toggle <strong>ON</strong></li>
+            <li>Set <strong>Passcode</strong> (kode untuk guru keluar dari kiosk mode)</li>
+            <li>Enable <strong>Time Limits > Speak</strong> (optional, untuk pengingat waktu)</li>
+            <li>Buka app Kawabel dari Home Screen</li>
+            <li><strong>Triple-click tombol Home/Side</strong> untuk mulai Guided Access</li>
+            <li>Tap <strong>Start</strong> di kanan atas</li>
+          </ol>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-3">
+            <p class="text-yellow-800 font-semibold">Untuk keluar: Triple-click tombol Home/Side, masukkan passcode guru</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">3</span>
+          <h3 class="text-lg font-semibold">Setting Keamanan Tambahan</h3>
+        </div>
+        <div class="ml-11 text-gray-600 space-y-2">
+          <ol class="list-decimal ml-5 space-y-1">
+            <li><strong>Settings > Screen Time > Content & Privacy</strong> — block Safari, App Store, Settings changes</li>
+            <li><strong>Settings > General > Auto-Lock</strong> — set ke "Never" (iPad selalu nyala)</li>
+            <li><strong>Settings > Display > Brightness</strong> — auto-brightness ON untuk hemat baterai</li>
+            <li><strong>Settings > Wi-Fi</strong> — auto-join Wi-Fi tuition center</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">4</span>
+          <h3 class="text-lg font-semibold">Buat PIN untuk Setiap Siswa</h3>
+        </div>
+        <div class="ml-11 text-gray-600 space-y-2">
+          <p>1. Buka <a href="students.html" class="text-green-600 underline">Halaman Siswa</a> di admin dashboard</p>
+          <p>2. Tambah siswa baru — PIN otomatis dibuat (4 digit)</p>
+          <p>3. Print kartu PIN untuk setiap siswa</p>
+          <p>4. Siswa login dengan PIN di iPad — auto-logout setelah 5 menit idle</p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">5</span>
+          <h3 class="text-lg font-semibold">Setup Leaderboard di TV</h3>
+        </div>
+        <div class="ml-11 text-gray-600 space-y-2">
+          <p>Tampilkan papan peringkat di TV tuition center:</p>
+          <p>1. Sambungkan laptop/chromecast ke TV</p>
+          <p>2. Buka: <code class="bg-gray-100 px-2 py-1 rounded" id="leaderUrl"></code></p>
+          <p>3. Full-screen browser (F11)</p>
+          <p>4. Auto-refresh setiap 60 detik</p>
+        </div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-green-100 text-green-700 font-bold rounded-full w-8 h-8 flex items-center justify-center">6</span>
+          <h3 class="text-lg font-semibold">Checklist Harian</h3>
+        </div>
+        <div class="ml-11">
+          <div class="bg-green-50 rounded-lg p-4 space-y-2">
+            <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> iPad terisi daya (>50%)</label>
+            <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> Wi-Fi terhubung</label>
+            <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> Guided Access aktif</label>
+            <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> Leaderboard di TV</label>
+            <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> Kartu PIN tersedia untuk siswa baru</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="bg-white rounded-2xl shadow p-8 mt-6">
+      <h2 class="text-xl font-bold text-red-600 mb-4">Troubleshooting</h2>
+      <div class="space-y-4 text-gray-600">
+        <div>
+          <p class="font-semibold text-gray-800">App tidak mau loading?</p>
+          <p>Cek koneksi Wi-Fi. Restart app. Clear browser cache jika perlu.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">Siswa tidak bisa login?</p>
+          <p>Cek PIN di halaman Siswa. Reset PIN jika perlu.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">Budi tidak merespon?</p>
+          <p>Server mungkin down. Cek <code>/api/health</code>. Siswa tetap bisa latihan dari bank soal offline.</p>
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">Cara keluar Guided Access?</p>
+          <p>Triple-click tombol Home/Side button, masukkan passcode guru.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const base = window.location.origin;
+    document.getElementById('appUrl').textContent = base;
+    document.getElementById('leaderUrl').textContent = base + '/leaderboard.html';
+  </script>
+</body>
+</html>

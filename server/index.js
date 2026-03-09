@@ -6,6 +6,7 @@
 //   - Railway/Render: node server/index.js
 //   - Local: node server/index.js
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
@@ -19,6 +20,9 @@ app.use(express.json({ limit: '10mb' }));
 
 // Serve admin dashboard static files
 app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+
+// Serve public pages (leaderboard, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve question bank data
 app.use('/data', express.static(path.join(__dirname, 'data')));
@@ -708,6 +712,51 @@ app.get('/api/auth/verify/:pin', (req, res) => {
   }
 });
 
+// Onboard parent — save parent info and send welcome WhatsApp
+app.post('/api/students/:id/onboard-parent', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { parent_phone, parent_name } = req.body;
+
+    if (!parent_phone || !parent_name) {
+      return res.status(400).json({ error: 'parent_phone dan parent_name wajib diisi' });
+    }
+
+    const student = db.prepare('SELECT * FROM students WHERE id = ?').get(id);
+    if (!student) {
+      return res.status(404).json({ error: 'Siswa tidak ditemukan' });
+    }
+
+    // Update student record
+    db.prepare('UPDATE students SET parent_phone = ?, parent_name = ? WHERE id = ?')
+      .run(parent_phone, parent_name, id);
+
+    // Send welcome WhatsApp message
+    const message =
+      `Halo ${parent_name}! Selamat datang di *Kawabel* (Kawan Belajar).\n\n` +
+      `Anak Anda, *${student.name}*, telah terdaftar di Kawabel dengan PIN: *${student.pin}*.\n\n` +
+      `Kawabel adalah teman belajar pintar yang membantu anak belajar Matematika, Bahasa Indonesia, dan IPA secara interaktif.\n\n` +
+      `Anda akan menerima notifikasi:\n` +
+      `- Pengingat tugas/PR\n` +
+      `- Laporan belajar mingguan\n\n` +
+      `Terima kasih sudah mendukung proses belajar ${student.name}! \u{1F989}`;
+
+    const waResult = await sendWhatsApp(parent_phone, message);
+
+    // Log the notification
+    db.prepare(`
+      INSERT INTO notifications (student_id, phone, message, sent_at, status)
+      VALUES (?, ?, ?, datetime('now'), ?)
+    `).run(student.id, parent_phone, message, waResult.success ? 'sent' : 'failed');
+
+    const updated = db.prepare('SELECT * FROM students WHERE id = ?').get(id);
+    res.json({ success: true, student: updated, whatsapp: waResult });
+  } catch (error) {
+    console.error('Error onboarding parent:', error);
+    res.status(500).json({ error: 'Gagal menghubungkan orang tua' });
+  }
+});
+
 // Reset PIN for a student
 app.post('/api/students/:id/reset-pin', (req, res) => {
   try {
@@ -984,6 +1033,187 @@ app.get('/api/reports/:student_id', (req, res) => {
     });
   } catch (error) {
     console.error('Error generating report:', error);
+    res.status(500).json({ error: 'Failed to generate report' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// API: Question bank (combined)
+// ---------------------------------------------------------------------------
+app.get('/api/questions', (req, res) => {
+  try {
+    const fs = require('fs');
+    const questionsDir = path.join(__dirname, 'data', 'questions');
+    const indexPath = path.join(questionsDir, 'index.json');
+
+    if (!fs.existsSync(indexPath)) {
+      return res.status(404).json({ error: 'Question bank index not found' });
+    }
+
+    const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+    const result = { subjects: [] };
+
+    for (const subject of index.subjects) {
+      const filePath = path.join(questionsDir, subject.file);
+      if (fs.existsSync(filePath)) {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        result.subjects.push({
+          id: subject.id,
+          name: subject.name,
+          icon: subject.icon,
+          grades: data.grades || {},
+        });
+      }
+    }
+
+    result.metadata = index.metadata || {};
+    result.cached_at = new Date().toISOString();
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error loading question bank:', error);
+    res.status(500).json({ error: 'Failed to load question bank' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// API: Leaderboard (for center TV display)
+// ---------------------------------------------------------------------------
+app.get('/api/leaderboard', (req, res) => {
+  try {
+    const { center_id, period = 'week' } = req.query;
+
+    const dateFilter = period === 'month'
+      ? "datetime('now', '-30 days')"
+      : period === 'all'
+        ? "datetime('2020-01-01')"
+        : "datetime('now', '-7 days')";
+
+    const centerClause = center_id ? 'AND s.center_id = ?' : '';
+    const params = center_id ? [center_id] : [];
+
+    const leaderboard = db.prepare(`
+      SELECT s.id, s.name, s.grade, s.stars, s.level,
+             COUNT(DISTINCT p.id) as activities,
+             COALESCE(AVG(CASE WHEN p.total > 0 THEN CAST(p.score AS REAL) / p.total * 100 END), 0) as avg_score,
+             COUNT(DISTINCT date(p.created_at)) as active_days
+      FROM students s
+      LEFT JOIN progress p ON p.student_id = s.id AND p.created_at >= ${dateFilter}
+      WHERE 1=1 ${centerClause}
+      GROUP BY s.id
+      ORDER BY s.stars DESC, activities DESC
+      LIMIT 20
+    `).all(...params);
+
+    const ranked = leaderboard.map((row, i) => ({
+      rank: i + 1,
+      ...row,
+      avg_score: Math.round(row.avg_score * 10) / 10,
+      badge: row.stars >= 200 ? 'diamond' : row.stars >= 100 ? 'gold' : row.stars >= 50 ? 'silver' : row.stars >= 20 ? 'bronze' : null,
+    }));
+
+    res.json({ period, leaderboard: ranked });
+  } catch (error) {
+    console.error('Error getting leaderboard:', error);
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// API: Monthly report (JSON data for PDF generation client-side or admin view)
+// ---------------------------------------------------------------------------
+app.get('/api/reports/:student_id/monthly', (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const { month, year } = req.query;
+
+    const m = month || new Date().getMonth() + 1;
+    const y = year || new Date().getFullYear();
+    const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+    const endDate = `${y}-${String(Number(m) + 1).padStart(2, '0')}-01`;
+
+    const student = db.prepare('SELECT * FROM students WHERE id = ?').get(student_id);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Subject performance this month
+    const subjects = db.prepare(`
+      SELECT subject,
+             COUNT(*) as attempts,
+             AVG(CAST(score AS REAL) / total * 100) as avg_pct,
+             MAX(CAST(score AS REAL) / total * 100) as best_pct,
+             MIN(CAST(score AS REAL) / total * 100) as worst_pct,
+             SUM(score) as total_correct,
+             SUM(total) as total_questions
+      FROM progress
+      WHERE student_id = ? AND total > 0
+        AND created_at >= ? AND created_at < ?
+      GROUP BY subject
+      ORDER BY avg_pct DESC
+    `).all(student_id, startDate, endDate);
+
+    // Daily activity count
+    const dailyActivity = db.prepare(`
+      SELECT date(created_at) as date, COUNT(*) as count
+      FROM progress
+      WHERE student_id = ?
+        AND created_at >= ? AND created_at < ?
+      GROUP BY date(created_at)
+      ORDER BY date
+    `).all(student_id, startDate, endDate);
+
+    // Session count this month
+    const sessions = db.prepare(`
+      SELECT COUNT(*) as count,
+             SUM(CASE WHEN ended_at IS NOT NULL
+                 THEN (julianday(ended_at) - julianday(started_at)) * 24 * 60
+                 ELSE 0 END) as total_minutes
+      FROM sessions
+      WHERE student_id = ?
+        AND started_at >= ? AND started_at < ?
+    `).get(student_id, startDate, endDate);
+
+    // Strengths and weaknesses
+    const strongest = subjects.length > 0 ? subjects[0].subject : null;
+    const weakest = subjects.length > 1 ? subjects[subjects.length - 1].subject : null;
+
+    const monthNames = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+
+    res.json({
+      student: {
+        name: student.name,
+        grade: student.grade,
+        stars: student.stars,
+        level: student.level,
+      },
+      period: `${monthNames[Number(m) - 1]} ${y}`,
+      summary: {
+        total_sessions: sessions.count,
+        total_minutes: Math.round(sessions.total_minutes || 0),
+        active_days: dailyActivity.length,
+        total_attempts: subjects.reduce((sum, s) => sum + s.attempts, 0),
+        overall_avg: subjects.length > 0
+          ? Math.round(subjects.reduce((sum, s) => sum + s.avg_pct, 0) / subjects.length * 10) / 10
+          : 0,
+      },
+      subjects: subjects.map(s => ({
+        ...s,
+        avg_pct: Math.round(s.avg_pct * 10) / 10,
+        best_pct: Math.round(s.best_pct * 10) / 10,
+      })),
+      daily_activity: dailyActivity,
+      insights: {
+        strongest_subject: strongest,
+        weakest_subject: weakest,
+      },
+      generated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error generating monthly report:', error);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });

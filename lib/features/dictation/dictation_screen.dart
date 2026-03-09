@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/ai/chat_service.dart';
 import '../../core/api/api_service.dart';
 import '../../core/models/student.dart';
+import '../../core/services/spaced_repetition.dart';
 
 class DictationScreen extends StatefulWidget {
   const DictationScreen({super.key});
@@ -13,8 +14,10 @@ class DictationScreen extends StatefulWidget {
   State<DictationScreen> createState() => _DictationScreenState();
 }
 
-class _DictationScreenState extends State<DictationScreen> {
-  final _lessonController = TextEditingController(text: 'Pelajaran 1 - Keluarga');
+class _DictationScreenState extends State<DictationScreen>
+    with SingleTickerProviderStateMixin {
+  final _lessonController =
+      TextEditingController(text: 'Pelajaran 1 - Keluarga');
   final _wordCountController = TextEditingController(text: '5');
   bool _started = false;
   bool _loading = false;
@@ -30,11 +33,44 @@ class _DictationScreenState extends State<DictationScreen> {
   final List<List<Offset?>> _strokes = [];
   List<Offset?> _currentStroke = [];
 
+  // Spaced repetition state
+  late TabController _tabController;
+  SpacedRepetitionService? _srService;
+  int _dueCount = 0;
+  bool _isReviewMode = false; // true when practicing review words
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _initSpacedRepetition();
+  }
+
+  Future<void> _initSpacedRepetition() async {
+    final student = context.read<StudentProvider>().student;
+    if (student == null) return;
+    _srService = SpacedRepetitionService(studentId: student.id);
+    await _srService!.load();
+    final count = await _srService!.getDueCount();
+    if (mounted) {
+      setState(() => _dueCount = count);
+    }
+  }
+
+  Future<void> _refreshDueCount() async {
+    if (_srService == null) return;
+    final count = await _srService!.getDueCount();
+    if (mounted) {
+      setState(() => _dueCount = count);
+    }
+  }
+
   Future<void> _startDictation() async {
     final count = int.tryParse(_wordCountController.text) ?? 5;
     setState(() {
       _loading = true;
       _words = [];
+      _isReviewMode = false;
     });
 
     final student = context.read<StudentProvider>();
@@ -83,6 +119,41 @@ class _DictationScreenState extends State<DictationScreen> {
     }
   }
 
+  Future<void> _startReview() async {
+    if (_srService == null) return;
+
+    setState(() => _loading = true);
+
+    final dueWords = await _srService!.getDueWords();
+    if (dueWords.isEmpty) {
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak ada kata untuk direview!')),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _words = dueWords
+          .map((c) => {
+                'word': c.word,
+                'pinyin': c.pinyin,
+                'meaning': c.meaning,
+              })
+          .toList();
+      _isReviewMode = true;
+      _started = true;
+      _loading = false;
+      _currentWordIndex = 0;
+      _answers.clear();
+      _results.clear();
+      _score = 0;
+      _showResult = false;
+    });
+  }
+
   void _checkAnswer() {
     final answer = _answerController.text.trim();
     final correct = _words[_currentWordIndex]['word'] ?? '';
@@ -94,13 +165,21 @@ class _DictationScreenState extends State<DictationScreen> {
       if (isCorrect) _score++;
     });
 
+    // Record in spaced repetition system
+    if (_srService != null) {
+      // Map correctness to SM-2 quality:
+      // correct → 4 (good), wrong → 0 (wrong)
+      final quality = isCorrect ? 4 : 0;
+      _srService!.recordAnswer(_words[_currentWordIndex], quality);
+    }
+
     // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           isCorrect
               ? '太棒了! Benar! ⭐'
-              : '答案是: $correct (${ _words[_currentWordIndex]['pinyin']})',
+              : '答案是: $correct (${_words[_currentWordIndex]['pinyin']})',
         ),
         backgroundColor: isCorrect ? Colors.green : Colors.orange,
         duration: const Duration(seconds: 2),
@@ -119,6 +198,7 @@ class _DictationScreenState extends State<DictationScreen> {
         });
       } else {
         setState(() => _showResult = true);
+        _refreshDueCount();
         if (_score == _words.length) {
           context.read<StudentProvider>().addStars(5);
         } else if (_score > 0) {
@@ -129,7 +209,7 @@ class _DictationScreenState extends State<DictationScreen> {
         ApiService.saveProgress(
           studentId: student.id,
           subject: 'Bahasa Mandarin',
-          topic: _lessonController.text,
+          topic: _isReviewMode ? 'Review Dikte' : _lessonController.text,
           score: _score,
           total: _words.length,
           type: 'dictation',
@@ -143,6 +223,23 @@ class _DictationScreenState extends State<DictationScreen> {
       _strokes.clear();
       _currentStroke = [];
     });
+  }
+
+  void _resetSession() {
+    setState(() {
+      _started = false;
+      _showResult = false;
+      _words = [];
+      _answers.clear();
+      _results.clear();
+      _score = 0;
+      _currentWordIndex = 0;
+      _isReviewMode = false;
+      _answerController.clear();
+      _strokes.clear();
+      _currentStroke = [];
+    });
+    _refreshDueCount();
   }
 
   @override
@@ -203,67 +300,226 @@ class _DictationScreenState extends State<DictationScreen> {
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 28),
-              TextField(
-                controller: _lessonController,
-                decoration: InputDecoration(
-                  labelText: 'Pelajaran / Topik',
-                  hintText: 'Contoh: Pelajaran 3 - Hewan',
-                  prefixIcon: const Icon(Icons.book_outlined),
-                  border: OutlineInputBorder(
+              const SizedBox(height: 24),
+
+              // Tab bar: New Words | Review
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFFE53935),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _wordCountController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Jumlah kata',
-                  prefixIcon: const Icon(Icons.format_list_numbered),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _startDictation,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE53935),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey[700],
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: [
+                    const Tab(text: 'Kata Baru'),
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Review'),
+                          if (_dueCount > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _tabController.index == 1
+                                    ? Colors.white
+                                    : const Color(0xFFE53935),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$_dueCount',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _tabController.index == 1
+                                      ? const Color(0xFFE53935)
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Text(
-                          '开始! Mulai!',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w600),
-                        ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Tab content
+              SizedBox(
+                height: 260,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // New Words tab
+                    _buildNewWordsTab(),
+                    // Review tab
+                    _buildReviewTab(),
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNewWordsTab() {
+    return Column(
+      children: [
+        TextField(
+          controller: _lessonController,
+          decoration: InputDecoration(
+            labelText: 'Pelajaran / Topik',
+            hintText: 'Contoh: Pelajaran 3 - Hewan',
+            prefixIcon: const Icon(Icons.book_outlined),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _wordCountController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Jumlah kata',
+            prefixIcon: const Icon(Icons.format_list_numbered),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _loading ? null : _startDictation,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: _loading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    '开始! Mulai!',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewTab() {
+    if (_dueCount == 0) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('🎉', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          const Text(
+            'Tidak ada kata untuk direview!',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Mulai latihan kata baru dulu, nanti kata-kata itu\nakan muncul di sini untuk direview.',
+            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E0),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.orange[200]!),
+          ),
+          child: Column(
+            children: [
+              const Text('📖', style: TextStyle(fontSize: 40)),
+              const SizedBox(height: 8),
+              Text(
+                '$_dueCount kata siap direview',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Review kata-kata yang sudah dipelajari\nagar tidak lupa!',
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _loading ? null : _startReview,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange[700],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: _loading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    '复习! Review!',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -277,6 +533,24 @@ class _DictationScreenState extends State<DictationScreen> {
           // Progress
           Row(
             children: [
+              if (_isReviewMode)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '复习 Review',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange[800],
+                    ),
+                  ),
+                ),
               Text(
                 'Kata ${_currentWordIndex + 1} / ${_words.length}',
                 style: const TextStyle(
@@ -298,8 +572,8 @@ class _DictationScreenState extends State<DictationScreen> {
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: (_currentWordIndex + 1) / _words.length,
-            backgroundColor: Colors.red[50],
-            color: const Color(0xFFE53935),
+            backgroundColor: _isReviewMode ? Colors.orange[50] : Colors.red[50],
+            color: _isReviewMode ? Colors.orange : const Color(0xFFE53935),
             borderRadius: BorderRadius.circular(4),
           ),
           const SizedBox(height: 24),
@@ -396,7 +670,7 @@ class _DictationScreenState extends State<DictationScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Type answer (since we can't do real handwriting recognition in web)
+          // Type answer
           Row(
             children: [
               Expanded(
@@ -458,6 +732,24 @@ class _DictationScreenState extends State<DictationScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (_isReviewMode)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '复习 Review',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange[800],
+                    ),
+                  ),
+                ),
               Text(
                 percentage >= 80 ? '🎉' : percentage >= 50 ? '💪' : '📚',
                 style: const TextStyle(fontSize: 56),
@@ -524,21 +816,67 @@ class _DictationScreenState extends State<DictationScreen> {
                 );
               }),
 
+              if (_dueCount > 0) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('📖', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '$_dueCount kata lagi perlu direview',
+                          style: TextStyle(
+                            color: Colors.orange[800],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE53935),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: _resetSession,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE53935),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Latihan Lagi',
+                            style: TextStyle(fontSize: 16)),
+                      ),
                     ),
                   ),
-                  child: const Text('Kembali', style: TextStyle(fontSize: 16)),
-                ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Kembali',
+                          style: TextStyle(fontSize: 16)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -552,6 +890,7 @@ class _DictationScreenState extends State<DictationScreen> {
     _lessonController.dispose();
     _wordCountController.dispose();
     _answerController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 }

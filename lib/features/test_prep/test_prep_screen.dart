@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/ai/chat_service.dart';
 import '../../core/api/api_service.dart';
 import '../../core/models/student.dart';
+import '../../core/services/question_cache.dart';
 
 class TestPrepScreen extends StatefulWidget {
   const TestPrepScreen({super.key});
@@ -32,6 +33,7 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
     'PKN',
   ];
 
+
   Future<void> _generateTest() async {
     if (_topicController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,6 +45,35 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
     setState(() => _loading = true);
 
     final student = context.read<StudentProvider>();
+    final cache = QuestionCache();
+
+    // 1. Try cached question bank first (instant, no network needed)
+    try {
+      final cached = await cache.getQuestions(
+        subject: _selectedSubject,
+        topic: _topicController.text,
+        grade: student.student!.grade,
+        count: 5,
+      );
+
+      if (cached.isNotEmpty) {
+        setState(() {
+          _questions = cached;
+          _loading = false;
+          _currentQuestion = 0;
+          _selectedAnswer = null;
+          _answered = false;
+          _score = 0;
+          _showResults = false;
+          // Using cached questions
+        });
+        return;
+      }
+    } catch (_) {
+      // Cache miss or error — fall through to AI generation
+    }
+
+    // 2. Fall back to AI-generated questions
     final chat = context.read<ChatService>();
 
     try {
@@ -62,6 +93,7 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
         _answered = false;
         _score = 0;
         _showResults = false;
+        // Using AI-generated questions
       });
     } catch (e) {
       setState(() => _loading = false);

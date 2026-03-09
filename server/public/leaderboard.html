@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kawabel Leaderboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+    .title-font { font-family: 'Nunito', sans-serif; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes sparkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    .row-animate { animation: slideIn 0.5s ease-out forwards; opacity: 0; }
+    .top-pulse { animation: pulse 2s ease-in-out infinite; }
+    .sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+    .rank-1 { background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%); }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%); }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%); }
+  </style>
+</head>
+<body class="min-h-screen text-white overflow-hidden">
+  <div class="max-w-5xl mx-auto p-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="flex items-center justify-center gap-4 mb-2">
+        <span class="text-6xl">🦉</span>
+        <h1 class="title-font text-5xl font-black text-white tracking-wider">kawabel</h1>
+      </div>
+      <p class="text-xl text-blue-300 font-semibold">Papan Peringkat Minggu Ini</p>
+      <p id="updateTime" class="text-sm text-gray-400 mt-1"></p>
+    </div>
+
+    <!-- Top 3 Podium -->
+    <div id="podium" class="flex justify-center items-end gap-6 mb-10 h-56">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- Rest of leaderboard -->
+    <div id="leaderboardList" class="space-y-3">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- Period selector -->
+    <div class="fixed bottom-6 right-6 flex gap-2">
+      <button onclick="setPeriod('week')" id="btn-week" class="px-4 py-2 rounded-full text-sm font-semibold bg-blue-600 hover:bg-blue-500 transition">Minggu</button>
+      <button onclick="setPeriod('month')" id="btn-month" class="px-4 py-2 rounded-full text-sm font-semibold bg-gray-700 hover:bg-gray-600 transition">Bulan</button>
+      <button onclick="setPeriod('all')" id="btn-all" class="px-4 py-2 rounded-full text-sm font-semibold bg-gray-700 hover:bg-gray-600 transition">Semua</button>
+    </div>
+  </div>
+
+  <script>
+    let currentPeriod = 'week';
+    const badgeEmoji = { diamond: '💎', gold: '🥇', silver: '🥈', bronze: '🥉' };
+    const rankEmoji = ['🥇', '🥈', '🥉'];
+
+    function setPeriod(p) {
+      currentPeriod = p;
+      document.querySelectorAll('[id^=btn-]').forEach(b => b.className = b.className.replace('bg-blue-600', 'bg-gray-700'));
+      document.getElementById(`btn-${p}`).className = document.getElementById(`btn-${p}`).className.replace('bg-gray-700', 'bg-blue-600');
+      fetchLeaderboard();
+    }
+
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch(`/api/leaderboard?period=${currentPeriod}`);
+        const data = await res.json();
+        render(data.leaderboard);
+        document.getElementById('updateTime').textContent = `Diperbarui: ${new Date().toLocaleTimeString('id-ID')}`;
+      } catch (e) {
+        console.error('Failed to fetch leaderboard:', e);
+      }
+    }
+
+    function render(list) {
+      // Podium (top 3)
+      const podium = document.getElementById('podium');
+      const top3 = list.slice(0, 3);
+      const podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd
+      const heights = ['h-40', 'h-52', 'h-32'];
+
+      podium.innerHTML = podiumOrder.map((idx, pos) => {
+        const s = top3[idx];
+        if (!s) return '';
+        return `
+          <div class="flex flex-col items-center ${pos === 1 ? 'top-pulse' : ''}">
+            <div class="text-4xl mb-2">${rankEmoji[idx] || ''}</div>
+            <div class="rank-${idx + 1} rounded-2xl ${heights[pos]} w-36 flex flex-col items-center justify-center shadow-2xl">
+              <span class="text-3xl mb-1">${s.badge ? badgeEmoji[s.badge] : '⭐'}</span>
+              <span class="font-bold text-lg text-center px-2 leading-tight">${s.name}</span>
+              <span class="text-sm opacity-80">${s.grade}</span>
+              <span class="font-black text-2xl mt-1">${s.stars} ⭐</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Rest (4th onwards)
+      const rest = list.slice(3);
+      const listEl = document.getElementById('leaderboardList');
+      listEl.innerHTML = rest.map((s, i) => `
+        <div class="row-animate flex items-center bg-white/10 backdrop-blur rounded-xl px-6 py-3 gap-4" style="animation-delay: ${i * 0.1}s">
+          <span class="text-2xl font-black w-10 text-center text-gray-400">${s.rank}</span>
+          <div class="flex-1">
+            <span class="font-semibold text-lg">${s.name}</span>
+            <span class="text-gray-400 text-sm ml-2">${s.grade}</span>
+          </div>
+          <div class="text-right">
+            <span class="font-bold text-xl">${s.stars} ⭐</span>
+            ${s.badge ? `<span class="ml-2">${badgeEmoji[s.badge]}</span>` : ''}
+          </div>
+          <div class="text-sm text-gray-400 w-24 text-right">
+            ${s.active_days}d aktif · ${Math.round(s.avg_score)}%
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initial load + auto-refresh every 60s
+    fetchLeaderboard();
+    setInterval(fetchLeaderboard, 60000);
+  </script>
+</body>
+</html>
