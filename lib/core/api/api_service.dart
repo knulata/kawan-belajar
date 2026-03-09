@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Service for communicating with the Kawan Belajar backend.
+/// Service for communicating with the Kawabel backend.
 /// Handles progress tracking, assignments, and student registration.
 class ApiService {
   static const _baseUrl = String.fromEnvironment(

@@ -8,11 +8,11 @@ import 'features/auth/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const KawanBelajarApp());
+  runApp(const KawabelApp());
 }
 
-class KawanBelajarApp extends StatelessWidget {
-  const KawanBelajarApp({super.key});
+class KawabelApp extends StatelessWidget {
+  const KawabelApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class KawanBelajarApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatService()),
       ],
       child: MaterialApp(
-        title: 'Kawan Belajar',
+        title: 'Kawabel',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(

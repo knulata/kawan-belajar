@@ -211,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Halo! Aku Budi!',
+                              'Halo dari Budi!',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Mau belajar apa hari ini? Foto PR-mu atau pilih mata pelajaran di bawah!',
+                              'Mau belajar apa hari ini? Foto PR-mu atau pilih pelajaran di bawah!',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white.withAlpha(230),

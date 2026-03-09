@@ -1,7 +1,7 @@
 {
-  "name": "kawan-belajar-api",
+  "name": "kawabel-api",
   "version": "1.0.0",
-  "description": "Kawan Belajar API proxy",
+  "description": "Kawabel API proxy",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

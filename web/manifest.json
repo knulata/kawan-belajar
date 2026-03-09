@@ -1,11 +1,11 @@
 {
-    "name": "kawan_belajar",
-    "short_name": "kawan_belajar",
+    "name": "Kawabel",
+    "short_name": "Kawabel",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#4CAF50",
+    "theme_color": "#4CAF50",
+    "description": "Kawabel — Teman Belajar AI-mu",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

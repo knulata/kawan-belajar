@@ -1,5 +1,5 @@
 #!/bin/bash
-# Kawan Belajar — Start everything for local development
+# Kawabel — Start everything for local development
 # Usage: ./start.sh
 
 set -e
@@ -11,7 +11,7 @@ if [ -z "$OPENAI_API_KEY" ]; then
   exit 1
 fi
 
-echo "🦉 Starting Kawan Belajar..."
+echo "🦉 Starting Kawabel..."
 echo ""
 
 # Start API server in background

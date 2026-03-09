@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laporan - Kawan Belajar Admin</title>
+  <title>Laporan - Kawabel Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script>
@@ -36,8 +37,8 @@
       <div class="flex items-center gap-3">
         <span class="text-3xl">🦉</span>
         <div>
-          <h2 class="font-bold text-gray-800">Kawan Belajar</h2>
-          <p class="text-xs text-gray-500">Panel Admin</p>
+          <h2 class="font-bold text-gray-800" style="font-family: 'Nunito', sans-serif;">Kawabel</h2>
+          <p class="text-xs text-gray-500">kawan belajar</p>
         </div>
       </div>
     </div>
@@ -442,7 +443,7 @@
       const stars = document.getElementById('reportStars').textContent;
 
       const message = encodeURIComponent(
-        `🦉 *Laporan Belajar - Kawan Belajar*\n\n` +
+        `🦉 *Laporan Belajar - Kawabel*\n\n` +
         `Siswa: *${selectedStudent.name}*\n` +
         `Kelas: ${selectedStudent.grade}\n` +
         `Periode: ${currentPeriod === 'weekly' ? 'Mingguan' : 'Bulanan'}\n\n` +
@@ -450,7 +451,7 @@
         `📚 Total Sesi: ${sessions}\n` +
         `⭐ Bintang: ${stars}\n\n` +
         `Untuk detail lebih lanjut, hubungi guru kelas.\n` +
-        `_Dikirim dari Kawan Belajar_`
+        `_Dikirim dari Kawabel_`
       );
 
       window.open(`https://wa.me/${phone}?text=${message}`, '_blank');

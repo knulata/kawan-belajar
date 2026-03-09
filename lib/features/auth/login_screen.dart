@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/models/student.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -100,24 +101,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Title
                   FadeInDown(
                     delay: const Duration(milliseconds: 200),
-                    child: const Text(
-                      'Kawan Belajar',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                    child: Text(
+                      'kawabel',
+                      style: GoogleFonts.nunito(
+                        fontSize: 42,
+                        fontWeight: FontWeight.w900,
                         color: Colors.white,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   FadeInDown(
                     delay: const Duration(milliseconds: 300),
                     child: Text(
-                      'Teman Belajar AI-mu!',
+                      'kawan belajar — teman AI-mu!',
                       style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white.withAlpha(230),
+                        fontSize: 16,
+                        color: Colors.white.withAlpha(220),
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),

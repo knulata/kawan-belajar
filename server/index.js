@@ -1,4 +1,4 @@
-// Kawan Belajar — API Proxy Server
+// Kawabel — API Proxy Server
 // Keeps the OpenAI API key on the server, never exposed to students
 //
 // Deploy options:
@@ -37,7 +37,7 @@ if (!FONNTE_TOKEN) {
 // ---------------------------------------------------------------------------
 // Database setup
 // ---------------------------------------------------------------------------
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'kawan_belajar.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'kawabel.db');
 const db = new Database(DB_PATH);
 
 // Enable WAL mode for better concurrency
@@ -177,7 +177,7 @@ async function sendWhatsApp(phone, message) {
 
 async function sendHomeworkReminder(student, assignment) {
   const message =
-    `Halo ${student.parent_name}! ${student.name} punya tugas ${assignment.subject}: ${assignment.topic} yang harus dikerjakan sebelum ${assignment.due_date}. Yuk ingatkan untuk belajar dengan Kawan Belajar! \u{1F989}`;
+    `Halo ${student.parent_name}! ${student.name} punya tugas ${assignment.subject}: ${assignment.topic} yang harus dikerjakan sebelum ${assignment.due_date}. Yuk ingatkan untuk belajar dengan Kawabel! \u{1F989}`;
 
   const result = await sendWhatsApp(student.parent_phone, message);
 
@@ -197,7 +197,7 @@ async function sendHomeworkReminder(student, assignment) {
 
 async function sendTestReminder(student, subject, date) {
   const message =
-    `Halo ${student.parent_name}! ${student.name} akan ada ujian ${subject} tanggal ${date}. Yuk latihan di Kawan Belajar! \u{1F989}`;
+    `Halo ${student.parent_name}! ${student.name} akan ada ujian ${subject} tanggal ${date}. Yuk latihan di Kawabel! \u{1F989}`;
 
   const result = await sendWhatsApp(student.parent_phone, message);
 
@@ -673,7 +673,7 @@ app.get('/api/reports/:student_id', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'Kawan Belajar API',
+    service: 'Kawabel API',
     database: 'connected',
     fonnte: FONNTE_TOKEN ? 'configured' : 'not configured',
   });
@@ -684,7 +684,7 @@ app.get('/api/health', (req, res) => {
 // ---------------------------------------------------------------------------
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`\u{1F989} Kawan Belajar API running on port ${PORT}`);
+  console.log(`\u{1F989} Kawabel API running on port ${PORT}`);
   console.log(`   Database: ${DB_PATH}`);
   console.log(`   Fonnte:   ${FONNTE_TOKEN ? 'configured' : 'NOT configured'}`);
   console.log(`   Cron:     homework reminders daily 16:00 WIB, weekly reports Sunday 10:00 WIB`);
