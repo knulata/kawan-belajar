@@ -423,7 +423,7 @@ app.post('/api/chat', async (req, res) => {
         choices: [{
           message: {
             role: 'assistant',
-            content: 'Hmm, ayo kita fokus belajar ya! \u{1F989} Ada soal yang bisa Budi bantu?',
+            content: 'Hmm, ayo kita fokus belajar ya! \u{1F989} Ada soal yang bisa Kawi bantu?',
           },
         }],
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
@@ -441,14 +441,14 @@ app.post('/api/chat', async (req, res) => {
 
   if (hasImage && usageRow.image_count >= DAILY_IMAGE_LIMIT) {
     return res.status(429).json({
-      error: 'Budi sudah capek hari ini! \u{1F634} Kamu bisa latihan pakai bank soal, atau coba lagi besok ya!',
+      error: 'Kawi sudah capek hari ini! \u{1F634} Kamu bisa latihan pakai bank soal, atau coba lagi besok ya!',
       limit_type: 'image',
     });
   }
 
   if (usageRow.request_count >= DAILY_TEXT_LIMIT) {
     return res.status(429).json({
-      error: 'Budi sudah capek hari ini! \u{1F634} Kamu bisa latihan pakai bank soal, atau coba lagi besok ya!',
+      error: 'Kawi sudah capek hari ini! \u{1F634} Kamu bisa latihan pakai bank soal, atau coba lagi besok ya!',
       limit_type: 'text',
     });
   }

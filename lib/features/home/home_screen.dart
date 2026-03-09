@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Budi greeting card
+              // Kawi greeting card
               FadeInUp(
                 delay: const Duration(milliseconds: 200),
                 child: Container(
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Halo dari Budi!',
+                              'Halo dari Kawi!',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -391,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _ActionCard(
                           icon: '📸',
                           title: 'Foto PR',
-                          subtitle: 'Foto soal, Budi bantu jawab',
+                          subtitle: 'Foto soal, Kawi bantu jawab',
                           color: const Color(0xFF2196F3),
                           onTap: () => Navigator.push(
                             context,

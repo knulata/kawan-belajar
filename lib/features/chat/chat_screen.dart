@@ -155,9 +155,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     String greeting;
     if (widget.mode == ChatMode.homework) {
-      greeting = 'Halo Budi! Aku mau minta bantuan untuk PR-ku.';
+      greeting = 'Halo Kawi! Aku mau minta bantuan untuk PR-ku.';
     } else {
-      greeting = 'Halo Budi! Aku mau belajar ${widget.subject}.';
+      greeting = 'Halo Kawi! Aku mau belajar ${widget.subject}.';
     }
 
     await chat.sendMessage(
@@ -277,7 +277,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           children: [
             const Text('\u{1F989} ', style: TextStyle(fontSize: 24)),
             Text(
-              widget.subject != null ? 'Budi \u2014 ${widget.subject}' : 'Budi',
+              widget.subject != null ? 'Kawi \u2014 ${widget.subject}' : 'Kawi',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
@@ -303,7 +303,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         const Text('\u{1F989}', style: TextStyle(fontSize: 64)),
                         const SizedBox(height: 16),
                         Text(
-                          'Budi sedang bersiap...',
+                          'Kawi sedang bersiap...',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey[500],
@@ -344,10 +344,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   const SizedBox(width: 8),
                   Text(
                     _speechLocale() == 'zh-CN'
-                        ? 'Budi mendengarkan... (Mandarin)'
+                        ? 'Kawi mendengarkan... (Mandarin)'
                         : _speechLocale() == 'en-US'
-                            ? 'Budi mendengarkan... (English)'
-                            : 'Budi mendengarkan...',
+                            ? 'Kawi mendengarkan... (English)'
+                            : 'Kawi mendengarkan...',
                     style: const TextStyle(
                       color: Color(0xFF388E3C),
                       fontWeight: FontWeight.w500,
@@ -411,7 +411,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           onPressed: chat.isLoading ? null : _toggleListening,
                           tooltip: _isListening
                               ? 'Berhenti mendengarkan'
-                              : 'Bicara ke Budi',
+                              : 'Bicara ke Kawi',
                         ),
                       ),
                     );
@@ -423,7 +423,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: TextField(
                     controller: _textController,
                     decoration: InputDecoration(
-                      hintText: 'Tanya Budi...',
+                      hintText: 'Tanya Kawi...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,

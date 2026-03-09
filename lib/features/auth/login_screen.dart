@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Budi the Owl — compact
+                  // Kawi the Owl — compact
                   FadeInDown(
                     child: Container(
                       width: 90,

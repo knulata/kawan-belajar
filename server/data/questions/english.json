@@ -22,7 +22,7 @@
           "explanation": "We say 'Thank you' to show gratitude when someone gives us something or does something nice for us."
         },
         {
-          "question": "Complete the dialogue: 'Hello, my name is Budi. What is ___ name?'",
+          "question": "Complete the dialogue: 'Hello, my name is Kawi. What is ___ name?'",
           "options": ["my", "his", "your", "her"],
           "correct": 2,
           "explanation": "'Your' is used because the speaker is asking the other person's name. 'What is your name?' means 'Siapa namamu?'"

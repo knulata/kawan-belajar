@@ -46,7 +46,7 @@ class ChatService extends ChangeNotifier {
   }
 
   String _buildSystemPrompt(String studentName, String grade) {
-    return '''You are Budi, a friendly and wise owl who is an AI tutor for Indonesian students. You speak in Bahasa Indonesia by default, but switch to the appropriate language when helping with language subjects (Chinese for Mandarin class, English for English class).
+    return '''You are Kawi, a friendly and wise owl who is an AI tutor for Indonesian students. You speak in Bahasa Indonesia by default, but switch to the appropriate language when helping with language subjects (Chinese for Mandarin class, English for English class).
 
 CRITICAL RULES — These make you DIFFERENT from ChatGPT:
 - NEVER give direct answers. This is the #1 rule. ALWAYS guide step by step.
@@ -118,7 +118,7 @@ Start by greeting the student warmly in Bahasa Indonesia. Use their name.''';
     } catch (e) {
       _messages.add(ChatMessage(
         role: 'assistant',
-        content: 'Maaf, Budi sedang istirahat sebentar. Coba lagi ya! 🦉\n\nError: $e',
+        content: 'Maaf, Kawi sedang istirahat sebentar. Coba lagi ya! 🦉\n\nError: $e',
       ));
     }
 
@@ -180,7 +180,7 @@ Start by greeting the student warmly in Bahasa Indonesia. Use their name.''';
     }
 
     if (response.statusCode != 200) {
-      throw Exception('Budi sedang sibuk (${response.statusCode})');
+      throw Exception('Kawi sedang sibuk (${response.statusCode})');
     }
 
     final data = jsonDecode(response.body);

@@ -120,12 +120,12 @@ function filterOutput(text) {
   // Check for profanity leaking through
   const idWord = containsBlockedWord(text, INDONESIAN_PROFANITY);
   if (idWord) {
-    return { safe: false, cleaned: 'Maaf, Budi tidak bisa menjawab itu. Coba tanya pertanyaan lain ya!' };
+    return { safe: false, cleaned: 'Maaf, Kawi tidak bisa menjawab itu. Coba tanya pertanyaan lain ya!' };
   }
 
   const enWord = containsBlockedWord(text, ENGLISH_PROFANITY);
   if (enWord) {
-    return { safe: false, cleaned: 'Maaf, Budi tidak bisa menjawab itu. Coba tanya pertanyaan lain ya!' };
+    return { safe: false, cleaned: 'Maaf, Kawi tidak bisa menjawab itu. Coba tanya pertanyaan lain ya!' };
   }
 
   // Check for direct homework answers without explanation
@@ -134,7 +134,7 @@ function filterOutput(text) {
   if (/^\d+([.,]\d+)?$/.test(trimmed) && trimmed.length < 10) {
     return {
       safe: false,
-      cleaned: 'Budi tidak boleh kasih jawaban langsung ya! Yuk kita pelajari caranya bersama. Coba ceritakan soalnya, dan Budi bantu langkah-langkahnya.',
+      cleaned: 'Kawi tidak boleh kasih jawaban langsung ya! Yuk kita pelajari caranya bersama. Coba ceritakan soalnya, dan Kawi bantu langkah-langkahnya.',
     };
   }
 
@@ -146,7 +146,7 @@ function filterOutput(text) {
     if (pattern.test(trimmed) && trimmed.length < 50) {
       return {
         safe: false,
-        cleaned: 'Budi tidak boleh kasih jawaban langsung ya! Yuk kita pelajari caranya bersama. Coba ceritakan soalnya, dan Budi bantu langkah-langkahnya.',
+        cleaned: 'Kawi tidak boleh kasih jawaban langsung ya! Yuk kita pelajari caranya bersama. Coba ceritakan soalnya, dan Kawi bantu langkah-langkahnya.',
       };
     }
   }

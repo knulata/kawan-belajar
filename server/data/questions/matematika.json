@@ -132,7 +132,7 @@
           "explanation": "Kelipatan 3: 3, 6, 9, 12, 15, ... Kelipatan 5: 5, 10, 15, ... Kelipatan persekutuan terkecil = 15."
         },
         {
-          "question": "Andi pergi ke perpustakaan setiap 6 hari. Budi pergi setiap 8 hari. Jika mereka bertemu hari ini, kapan mereka bertemu lagi?",
+          "question": "Andi pergi ke perpustakaan setiap 6 hari. Kawi pergi setiap 8 hari. Jika mereka bertemu hari ini, kapan mereka bertemu lagi?",
           "options": ["12 hari lagi", "14 hari lagi", "24 hari lagi", "48 hari lagi"],
           "correct": 2,
           "explanation": "Kita mencari KPK dari 6 dan 8. 6 = 2 \u00d7 3, 8 = 2\u00b3. KPK = 2\u00b3 \u00d7 3 = 24. Mereka bertemu lagi 24 hari lagi."

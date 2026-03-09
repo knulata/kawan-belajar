@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Kawabel (Kawan Belajar) is an AI-powered tutoring tablet app for Indonesian students (SD & SMP). Students photograph homework/textbooks and get guided help from "Budi" — an AI owl tutor. Features Chinese dictation with TTS + handwriting recognition, test prep with mock tests, and gamified learning across all school subjects. Deployed on iPads at tuition centers with home continuity.
+Kawabel (Kawan Belajar) is an AI-powered tutoring tablet app for Indonesian students (SD & SMP). Students photograph homework/textbooks and get guided help from "Kawi" — an AI owl tutor. Features Chinese dictation with TTS + handwriting recognition, test prep with mock tests, and gamified learning across all school subjects. Deployed on iPads at tuition centers with home continuity.
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ Kawabel (Kawan Belajar) is an AI-powered tutoring tablet app for Indonesian stud
 - **Logo font**: Nunito (weight 900, extra bold)
 - **Body font**: Poppins
 - **Primary color**: #4CAF50 (green)
-- **Mascot**: Budi the Owl 🦉
+- **Mascot**: Kawi the Owl 🦉
 
 ## Project Structure
 
@@ -31,7 +31,7 @@ Kawabel (Kawan Belajar) is an AI-powered tutoring tablet app for Indonesian stud
 ## Key Conventions
 
 - Feature-first folder structure
-- Budi (the owl) is the AI persona — always guides, never gives direct answers
+- Kawi (the owl) is the AI persona — always guides, never gives direct answers
 - All AI prompts must be age-appropriate and filtered
 - "Kawabel" branding everywhere, lowercase in logo
 - Indonesian (Bahasa) is the primary UI language

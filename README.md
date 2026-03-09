@@ -3,26 +3,26 @@
 **Your AI Study Buddy** — An iPad/tablet app that uses AI to help Indonesian students with homework and test preparation across all school subjects.
 
 <p align="center">
-  <img src="docs/assets/budi-hero.png" alt="Budi the Owl" width="200">
+  <img src="docs/assets/kawi-hero.png" alt="Kawi the Owl" width="200">
   <br>
-  <em>Meet Budi — your friendly AI tutor owl</em>
+  <em>Meet Kawi — your friendly AI tutor owl</em>
 </p>
 
 ---
 
 ## What is Kawan Belajar?
 
-Kawan Belajar ("Learning Buddy") is a revolutionary AI-powered tutoring app designed for tuition centers and home use. Students snap a photo of their worksheet or textbook, and **Budi the Owl** — their AI teacher companion — guides them through understanding and solving problems step by step.
+Kawan Belajar ("Learning Buddy") is a revolutionary AI-powered tutoring app designed for tuition centers and home use. Students snap a photo of their worksheet or textbook, and **Kawi the Owl** — their AI teacher companion — guides them through understanding and solving problems step by step.
 
 ### Key Features
 
 - **Snap & Learn** — Take a photo of any worksheet, textbook page, or homework. AI reads and understands the content instantly.
-- **Guided Problem Solving** — Budi doesn't give answers. He asks guiding questions, gives hints, and helps students think through problems themselves.
-- **Chinese Dictation Mode (听写)** — Budi reads out Chinese words/sentences aloud while the student writes. Handwriting is recognized and graded in real-time.
-- **Test Prep Mode** — Upload a test topic or syllabus photo. Budi generates practice questions, mock tests, and tracks weak areas.
+- **Guided Problem Solving** — Kawi doesn't give answers. He asks guiding questions, gives hints, and helps students think through problems themselves.
+- **Chinese Dictation Mode (听写)** — Kawi reads out Chinese words/sentences aloud while the student writes. Handwriting is recognized and graded in real-time.
+- **Test Prep Mode** — Upload a test topic or syllabus photo. Kawi generates practice questions, mock tests, and tracks weak areas.
 - **All Subjects Covered** — Math, Bahasa Indonesia, Chinese (Mandarin), Science (IPA), Social Studies (IPS), English, PKN, and more.
 - **Tuition Center + Home** — Start at the center, continue at home. Progress syncs seamlessly.
-- **Gamified Learning** — Earn stars, unlock badges, level up with Budi. Weekly streaks and leaderboards at the tuition center.
+- **Gamified Learning** — Earn stars, unlock badges, level up with Kawi. Weekly streaks and leaderboards at the tuition center.
 
 ---
 
@@ -36,15 +36,15 @@ Kawan Belajar ("Learning Buddy") is a revolutionary AI-powered tutoring app desi
 
 ---
 
-## Meet Budi 🦉
+## Meet Kawi 🦉
 
-Budi is a wise, friendly owl who serves as the student's AI tutor. He adapts his personality based on the student's age:
+Kawi is a wise, friendly owl who serves as the student's AI tutor. He adapts his personality based on the student's age:
 
 - **For younger students (SD 1-3):** Playful, uses simple language, lots of encouragement, animated reactions
 - **For older students (SD 4-6):** Supportive coach, explains concepts clearly, celebrates effort
 - **For SMP students:** More mature mentor, deeper explanations, encourages independent thinking
 
-Budi speaks Bahasa Indonesia by default, switches to Chinese for Chinese class, and uses English for English class.
+Kawi speaks Bahasa Indonesia by default, switches to Chinese for Chinese class, and uses English for English class.
 
 ---
 
@@ -54,7 +54,7 @@ Budi speaks Bahasa Indonesia by default, switches to Chinese for Chinese class, 
 ┌─────────────────────────────────────────────────┐
 │                  FLUTTER APP                     │
 │  ┌───────────┐ ┌───────────┐ ┌───────────────┐  │
-│  │  Camera /  │ │   Budi    │ │  Handwriting  │  │
+│  │  Camera /  │ │   Kawi    │ │  Handwriting  │  │
 │  │  Scanner   │ │  Chat UI  │ │  Canvas       │  │
 │  └─────┬─────┘ └─────┬─────┘ └──────┬────────┘  │
 │        │              │              │            │
@@ -106,10 +106,10 @@ Student stuck on homework
   🔍 AI extracts text/math from image
         │
         ▼
-  🦉 Budi identifies the subject & topic
+  🦉 Kawi identifies the subject & topic
         │
         ▼
-  💬 Budi asks: "What have you tried so far?"
+  💬 Kawi asks: "What have you tried so far?"
         │
         ▼
   🧠 Guided conversation:
@@ -135,10 +135,10 @@ Student selects "Latihan Dikte" (Dictation Practice)
      (or teacher assigns word list)
         │
         ▼
-  🦉 Budi says: "Ready? Let's begin!"
+  🦉 Kawi says: "Ready? Let's begin!"
         │
         ▼
-  🔊 Budi reads a word/phrase aloud (TTS)
+  🔊 Kawi reads a word/phrase aloud (TTS)
      e.g. "请写：学校" (Please write: school)
         │
         ▼
@@ -151,7 +151,7 @@ Student selects "Latihan Dikte" (Dictation Practice)
         │
         ▼
   ✅ Correct → "太棒了!" + star
-  ❌ Wrong → Budi shows correct strokes,
+  ❌ Wrong → Kawi shows correct strokes,
      adds to review list
         │
         ▼
@@ -168,7 +168,7 @@ Upcoming test announced
      OR selects subject + chapter
         │
         ▼
-  🦉 Budi generates a study plan:
+  🦉 Kawi generates a study plan:
      "Your test is in 5 days. Here's our plan!"
         │
         ▼
@@ -194,7 +194,7 @@ Upcoming test announced
 ## App Screens
 
 ### 1. Home Screen
-- Budi greeting (time-aware: "Selamat pagi!" / "Selamat sore!")
+- Kawi greeting (time-aware: "Selamat pagi!" / "Selamat sore!")
 - Today's learning streak & stars
 - Quick actions: Snap Homework, Test Prep, Dictation
 - Recent activity feed
@@ -206,8 +206,8 @@ Upcoming test announced
 - Auto-crop & enhance
 - Gallery picker option
 
-### 3. Chat with Budi
-- Chat-style interface with Budi's avatar
+### 3. Chat with Kawi
+- Chat-style interface with Kawi's avatar
 - Rich messages: text, math (LaTeX), images, diagrams
 - Interactive elements: multiple choice, drag & drop
 - Voice input option
@@ -252,8 +252,8 @@ Upcoming test announced
 - Earn 10 stars for mock test improvements
 
 ### Levels
-- Level 1-10: Budi Egg → Baby Owl → ... → Wise Owl
-- Each level unlocks new Budi outfits/accessories
+- Level 1-10: Kawi Egg → Baby Owl → ... → Wise Owl
+- Each level unlocks new Kawi outfits/accessories
 - Visual evolution of the character
 
 ### Badges
@@ -358,7 +358,7 @@ streaks (id, student_id, current_streak, longest_streak, last_active)
 ### Phase 1: Foundation (Weeks 1-6)
 - [ ] Flutter project setup with tablet-optimized layouts
 - [ ] Supabase backend: auth, database, storage
-- [ ] Budi character design & basic animations
+- [ ] Kawi character design & basic animations
 - [ ] Camera/photo capture & Claude Vision integration
 - [ ] Basic chat UI with Claude API
 - [ ] Student profile & login (PIN-based for young kids)
@@ -399,7 +399,7 @@ streaks (id, student_id, current_streak, longest_streak, last_active)
 
 ## Safety & Content Guidelines
 
-- **No direct answers** — Budi always guides, never just gives the answer
+- **No direct answers** — Kawi always guides, never just gives the answer
 - **Age-appropriate content** — Language and complexity adapts to grade level
 - **Content filtering** — AI responses are filtered for appropriateness
 - **Session limits** — Configurable time limits per session (center policy)
@@ -458,7 +458,7 @@ kawan-belajar/
 │   │   ├── auth/                  # Login, PIN, profiles
 │   │   ├── home/                  # Home screen & dashboard
 │   │   ├── camera/                # Photo capture & scanning
-│   │   ├── chat/                  # Chat with Budi
+│   │   ├── chat/                  # Chat with Kawi
 │   │   ├── dictation/             # Chinese dictation mode
 │   │   ├── test_prep/             # Test preparation
 │   │   ├── progress/              # Progress & achievements
@@ -471,12 +471,12 @@ kawan-belajar/
 │   │   └── models/                # Shared data models
 │   └── shared/
 │       ├── widgets/               # Reusable UI components
-│       ├── budi/                  # Budi character & animations
+│       ├── kawi/                  # Kawi character & animations
 │       └── utils/                 # Helpers & extensions
 ├── assets/
-│   ├── images/                    # Budi sprites, icons
+│   ├── images/                    # Kawi sprites, icons
 │   ├── animations/                # Lottie/Rive animations
-│   └── sounds/                    # Sound effects, Budi voice
+│   └── sounds/                    # Sound effects, Kawi voice
 ├── admin-dashboard/               # Web admin panel (Next.js)
 ├── supabase/
 │   ├── migrations/                # Database migrations

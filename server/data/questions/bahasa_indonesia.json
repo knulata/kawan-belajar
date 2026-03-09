@@ -99,7 +99,7 @@
         },
         {
           "question": "Kalimat berikut yang termasuk kalimat tanya adalah ...",
-          "options": ["Ayo kita pergi ke sekolah!", "Budi sedang membaca buku.", "Apakah kamu sudah makan?", "Jangan bermain di jalan!"],
+          "options": ["Ayo kita pergi ke sekolah!", "Kawi sedang membaca buku.", "Apakah kamu sudah makan?", "Jangan bermain di jalan!"],
           "correct": 2,
           "explanation": "Kalimat tanya diakhiri dengan tanda tanya (?) dan biasanya menggunakan kata tanya seperti 'apakah'."
         }

@@ -296,7 +296,7 @@ class _DictationScreenState extends State<DictationScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                'Budi akan bacakan kata-kata, kamu tulis jawabannya!',
+                'Kawi akan bacakan kata-kata, kamu tulis jawabannya!',
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 textAlign: TextAlign.center,
               ),
@@ -593,7 +593,7 @@ class _DictationScreenState extends State<DictationScreen>
             ),
             child: Column(
               children: [
-                const Text('🦉 Budi bilang:',
+                const Text('🦉 Kawi bilang:',
                     style: TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 8),
                 Text(

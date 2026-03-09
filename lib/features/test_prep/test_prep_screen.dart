@@ -200,7 +200,7 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Budi akan buatkan soal latihan untukmu!',
+                'Kawi akan buatkan soal latihan untukmu!',
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 textAlign: TextAlign.center,
               ),
@@ -266,7 +266,7 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
                               ),
                             ),
                             SizedBox(width: 12),
-                            Text('Budi sedang membuat soal...',
+                            Text('Kawi sedang membuat soal...',
                                 style: TextStyle(fontSize: 16)),
                           ],
                         )
@@ -551,7 +551,7 @@ class _TestPrepScreenState extends State<TestPrepScreen> {
                     ? 'Luar biasa! Kamu siap ujian! 🌟'
                     : percentage >= 60
                         ? 'Bagus! Latihan lagi supaya lebih mantap!'
-                        : 'Yuk belajar lagi, Budi siap bantu! 🦉',
+                        : 'Yuk belajar lagi, Kawi siap bantu! 🦉',
                 style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
